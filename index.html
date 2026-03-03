@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أحمد الصلوي خدمات الشحن | نقل البضائع في صنعاء وجميع المحافظات</title>
+    <meta name="description" content="أحمد الصلوي لنقل وتحميل البضائع، الخدمة الأسرع والأكثر أماناً في صنعاء وجميع المحافظات اليمنية.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; scroll-behavior: smooth; }
+        .hero-section { 
+            background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
+                        url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80');
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        .service-card:hover { transform: translateY(-8px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: all 0.3s ease; max-height: 90vh; overflow-y: auto; }
+        .invoice-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .invoice-label { color: #64748b; font-weight: 700; }
+        .invoice-value { color: #0f172a; font-weight: 900; text-align: left; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="bookingModal" class="fixed inset-0 z-[100] hidden">
+        <div class="modal-overlay absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl transform scale-95 opacity-0">
+                <div id="formContainer">
+                    <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                        <h3 class="text-xl font-black">طلب حجز جديد 🚚</h3>
+                        <button onclick="toggleModal()" class="text-white/80 hover:text-white text-2xl">&times;</button>
+                    </div>
+                    <form id="modalBookingForm" class="p-8 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">الاسم الكامل</label>
+                                <input id="mName" type="text" required placeholder="أدخل اسمك" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-blue-600">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">رقم الهاتف</label>
+                                <input id="mPhone" type="tel" required placeholder="77XXXXXXX" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none text-left">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">من (التحميل)</label>
+                                <input id="mFrom" type="text" required placeholder="المدينة" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">إلى (التفريغ)</label>
+                                <input id="mTo" type="text" required placeholder="المدينة" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">تاريخ الموعد (اختياري)</label>
+                                <input id="mDate" type="datetime-local" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-blue-600 text-right">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="text-xs font-bold text-slate-400 mb-1 block mr-2">تفاصيل الشحنة</label>
+                                <textarea id="mDetails" rows="2" required placeholder="مثلاً: نقل أثاث منزلي..." class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-4 rounded-xl font-black hover:bg-green-700 transition shadow-lg flex items-center justify-center gap-2">
+                            <span>إرسال الطلب (واتساب)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="invoiceContainer" class="hidden p-6 bg-slate-50 rounded-[2rem]">
+                    <div id="captureArea" class="bg-white p-8 rounded-2xl border-2 border-blue-100 mb-6">
+                        <div class="text-center border-b pb-4 mb-6">
+                            <h2 class="text-2xl font-black text-blue-600">أحمد الصلوي لنقل البضائع</h2>
+                        </div>
+                        <h3 class="text-lg font-black mb-4 border-r-4 border-blue-600 pr-3">تفاصيل حجز الرحلة</h3>
+                        <div class="space-y-1">
+                            <div class="invoice-row"><span class="invoice-label">اسم العميل:</span> <span id="resName" class="invoice-value"></span></div>
+                            <div class="invoice-row"><span class="invoice-label">رقم الهاتف:</span> <span id="resPhone" class="invoice-value"></span></div>
+                            <div class="invoice-row"><span class="invoice-label">نقطة التحميل:</span> <span id="resFrom" class="invoice-value"></span></div>
+                            <div class="invoice-row"><span class="invoice-label">نقطة التفريغ:</span> <span id="resTo" class="invoice-value"></span></div>
+                            <div class="invoice-row"><span class="invoice-label">تاريخ الموعد:</span> <span id="resDate" class="invoice-value"></span></div>
+                            <div class="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="invoice-label block mb-2">تفاصيل الشحنة:</span>
+                                <p id="resDetails" class="text-sm font-bold text-slate-700"></p>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center pt-4 border-t border-slate-50">
+                            <p class="text-[10px] text-slate-300 font-bold">هاتف: 771179869 | صنعاء</p>
+                        </div>
+                    </div>
+                    <button id="downloadBtn" onclick="downloadInvoice()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 shadow-xl flex items-center justify-center gap-2 mb-3">
+                        <span>تحميل الفاتورة (PDF)</span>
+                    </button>
+                    <button onclick="toggleModal()" class="w-full text-slate-400 font-bold text-sm">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-slate-100">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="text-blue-600 font-black text-2xl flex items-center gap-2">
+                    <span class="text-sky-400 text-3xl">🚚</span>
+                    <span>أحمد الصلوي</span>
+                </div>
+            </div>
+            <div class="hidden md:flex space-x-reverse space-x-6 font-bold text-slate-600">
+                <a href="#home" class="hover:text-blue-600">الرئيسية</a>
+                <a href="#services" class="hover:text-blue-600">الخدمات</a>
+                <a href="#about" class="hover:text-blue-600">لماذا نحن؟</a>
+            </div>
+            <button onclick="toggleModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition">إحجز الآن</button>
+        </div>
+    </nav>
+
+    <section id="home" class="hero-section text-white py-32 md:py-48 px-4 text-center">
+        <div class="container mx-auto">
+            <span class="bg-blue-600/30 backdrop-blur-md px-4 py-1 rounded-full text-xs font-bold mb-4 inline-block">خدمة موثوقة في جميع أنحاء اليمن</span>
+            <h1 class="text-5xl md:text-7xl font-black mb-6">نقل وتحميل البضائع</h1>
+            <p class="text-xl mb-12 opacity-90 max-w-2xl mx-auto font-light">نقل الأثاث والبضائع التجارية بدقة عالية وأمان تام عبر دينات حديثة.</p>
+            <button onclick="toggleModal()" class="bg-green-500 hover:bg-green-600 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-2xl transition transform hover:scale-105">إبدأ الحجز الآن 🚚</button>
+        </div>
+    </section>
+
+    <section class="container mx-auto px-4 -mt-12 relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl text-center border-b-4 border-blue-600">
+            <div class="text-3xl font-black text-blue-600">100%</div>
+            <div class="text-slate-400 text-xs font-bold">ضمان الأمان</div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-xl text-center border-b-4 border-blue-600">
+            <div class="text-3xl font-black text-blue-600">24/7</div>
+            <div class="text-slate-400 text-xs font-bold">خدمة متواصلة</div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-xl text-center border-b-4 border-blue-600">
+            <div class="text-3xl font-black text-blue-600">+5</div>
+            <div class="text-slate-400 text-xs font-bold">سنوات خبرة</div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-xl text-center border-b-4 border-blue-600">
+            <div class="text-3xl font-black text-blue-600">اليمن</div>
+            <div class="text-slate-400 text-xs font-bold">تغطية شاملة</div>
+        </div>
+    </section>
+
+    <section id="services" class="py-24 container mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-black text-slate-900 mb-4">خدماتنا المتكاملة</h2>
+            <div class="w-20 h-1.5 bg-blue-600 mx-auto rounded-full"></div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="service-card bg-white p-8 rounded-[2rem] shadow-lg border border-slate-100 text-center">
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 text-4xl mx-auto">🏠</div>
+                <h3 class="text-xl font-black mb-3">نقل الأثاث المنزلي</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">فك، تغليف، ونقل الأثاث المنزلي بعناية فائقة لضمان عدم تعرضه لأي خدوش.</p>
+            </div>
+            <div class="service-card bg-white p-8 rounded-[2rem] shadow-lg border border-slate-100 text-center">
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 text-4xl mx-auto">📦</div>
+                <h3 class="text-xl font-black mb-3">نقل البضائع التجارية</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">توصيل البضائع والمواد الغذائية للمحلات والمستودعات في أسرع وقت ممكن.</p>
+            </div>
+            <div class="service-card bg-white p-8 rounded-[2rem] shadow-lg border border-slate-100 text-center">
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 text-4xl mx-auto">🚛</div>
+                <h3 class="text-xl font-black mb-3">شحن للمحافظات</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">خدمات النقل البري من صنعاء إلى كافة المحافظات اليمنية بأسعار تنافسية.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="bg-slate-900 py-24 text-white">
+        <div class="container mx-auto px-4 grid md:grid-cols-2 gap-16 items-center">
+            <div>
+                <h2 class="text-4xl font-black mb-8 leading-tight"> لماذا يختار العملاء<br><span class="text-blue-500">أحمد الصلوي؟</span></h2>
+                <ul class="space-y-6">
+                    <li class="flex gap-4">
+                        <span class="text-green-400 text-xl font-bold">✔</span>
+                        <div>
+                            <h4 class="font-black text-lg">دقة في المواعيد</h4>
+                            <p class="text-slate-500 text-sm">نلتزم بالوصول في الوقت المحدد تماماً دون تأخير.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <span class="text-green-500 text-xl font-bold">✔</span>
+                        <div>
+                            <h4 class="font-black text-lg">أمان تام للبضائع</h4>
+                            <p class="text-slate-500 text-sm">نحرص على سلامة كل قطعة يتم نقلها كأنها ملكنا.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <span class="text-green-500 text-xl font-bold">✔</span>
+                        <div>
+                            <h4 class="font-black text-lg">دينات مجهزة 🚚</h4>
+                            <p class="text-slate-500 text-sm">دينة حديثة ومغلقة لحماية شحنتك من العوامل الجوية.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="relative">
+                <div class="bg-blue-600 rounded-[3rem] p-12 text-center shadow-2xl border-4 border-blue-500/30">
+                    <h3 class="text-3xl font-black mb-4 tracking-widest">771179869</h3>
+                    <p class="text-blue-200 font-bold mb-8">اتصل بنا مباشرة للحصول على تسعيرة فورية</p>
+                    <a href="tel:967771179869" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl font-black hover:scale-105 transition shadow-lg">اتصل الآن 📞</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 text-center text-slate-400 text-sm font-bold bg-white">
+        بـرمجـة وتطوير ⬅ إبن عبيد © 2026
+    </footer>
+
+    <script>
+        const modal = document.getElementById('bookingModal');
+        const modalContent = modal.querySelector('.modal-content');
+        const formContainer = document.getElementById('formContainer');
+        const invoiceContainer = document.getElementById('invoiceContainer');
+
+        function toggleModal() {
+            if (modal.classList.contains('hidden')) {
+                formContainer.classList.remove('hidden');
+                invoiceContainer.classList.add('hidden');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        document.getElementById('modalBookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const rawDate = document.getElementById('mDate').value;
+            let formattedDate = 'لم يحدد';
+            if (rawDate) {
+                const dateObj = new Date(rawDate);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+                formattedDate = new Intl.DateTimeFormat('ar-YE', options).format(dateObj);
+            }
+
+            const data = {
+                name: document.getElementById('mName').value,
+                phone: document.getElementById('mPhone').value,
+                from: document.getElementById('mFrom').value,
+                to: document.getElementById('mTo').value,
+                date: formattedDate,
+                details: document.getElementById('mDetails').value
+            };
+
+            document.getElementById('resName').innerText = data.name;
+            document.getElementById('resPhone').innerText = data.phone;
+            document.getElementById('resFrom').innerText = data.from;
+            document.getElementById('resTo').innerText = data.to;
+            document.getElementById('resDate').innerText = data.date;
+            document.getElementById('resDetails').innerText = data.details;
+
+            formContainer.classList.add('hidden');
+            invoiceContainer.classList.remove('hidden');
+
+            const msg = `*طلب حجز جديد *%0A%0A👤 الاسم: ${data.name}%0A📞 الهاتف: ${data.phone}%0A📍 من: ${data.from}%0A🏁 إلى: ${data.to}%0A📅 التاريخ: ${data.date}%0A📦 الشحنة: ${data.details}`;
+            window.open(`https://wa.me/967771179869?text=${msg}`, '_blank');
+        });
+
+        async function downloadInvoice() {
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "جاري التحميل...";
+
+            try {
+                const element = document.getElementById('captureArea');
+                const canvas = await html2canvas(element, { scale: 3, useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+                pdf.save(`حجز_الصلوي_${document.getElementById('resName').innerText}.pdf`);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
